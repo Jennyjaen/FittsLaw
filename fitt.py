@@ -3,15 +3,14 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtTest import *
+#from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 import time
 import random
 import math
-import pyautogui as pg
 import datetime
 import pandas as pd
 import os
-from playsound import playsound
-
+import pygame
 '''
 class Logger(QThread):
     def __init__(self):
@@ -62,6 +61,7 @@ class MyWindow(QMainWindow):
         self.end.setGeometry(self.e_width, self.e_height, self.radius, self.radius)
         self.end.setStyleSheet("border-radius:"+str(self.radius//2)+"; background-color: red; ")
         self.end.clicked.connect(self.click_end)
+        #self.player=QMediaPlayer()
         self.showMaximized()
 
     def finish(self):
@@ -83,12 +83,26 @@ class MyWindow(QMainWindow):
 
     def click_end(self):
         print(str(self.count)+"  correct")
-        #filepath=os.path.join(os.getcsd(), 'correct.mp3')
-        #url=QUrl.fromLocalFile(filepath)
-        playsound('./correct.mp3')
+        '''
+        filepath=os.path.join(os.getcwd(), 'correct.mp3')
+        url=QUrl.fromLocalFile(filepath)
+        content=QMediaContent(url)
+        self.player.setMedia(content)
+        self.player.play()'''
+  
         if(self.start_click):
             self.end.setStyleSheet("border-radius: "+str(self.radius//2)+"; background-color: yellow;  border: 5px solid red;")
             self.start_click=False
+            QTest.qWait(100) #time.sleep의 pyqt 버전
+            time.sleep(0.1)
+            pygame.mixer.init(16000, -16, 1, 2048)
+            pygame.mixer.music.load("correct.mp3")
+            pygame.mixer.music.play()
+
+            clock = pygame.time.Clock()
+            while pygame.mixer.music.get_busy():
+                clock.tick(30)
+            pygame.mixer.quit()  
             #self.logger.end()
             self.count+=1
             self.setMouseTracking(False)
@@ -109,7 +123,7 @@ class MyWindow(QMainWindow):
                 if(self.count % self.task ==0):
                     self.new_condition()
                 self.new_start_end()
-                QTest.qWait(1000) #time.sleep의 pyqt 버전
+                QTest.qWait(900) #time.sleep의 pyqt 버전
                 self.start.setGeometry(self.s_width, self.s_height, self.start_radius, self.start_radius)
                 self.end.setGeometry(self.e_width, self.e_height, self.radius, self.radius)
                 self.start.setStyleSheet("border-radius: "+str(self.start_radius//2)+"; background-color: green; ")
@@ -136,7 +150,14 @@ class MyWindow(QMainWindow):
     def mousePressEvent(self, event):
         print(str(self.count)+"  wrong")
         if(self.start_click): #button 위 클릭은 감지 못하는 듯.
-            playsound('./wrong.mp3')
+            pygame.mixer.init(16000, -16, 1, 2048)
+            pygame.mixer.music.load("wrong.mp3")
+            pygame.mixer.music.play()
+
+            clock = pygame.time.Clock()
+            while pygame.mixer.music.get_busy():
+                clock.tick(30)
+            pygame.mixer.quit() 
             time=datetime.datetime.now()
             date=time.strftime('%Y-%m-%d %H:%M:%S.%f')
             timeline.append(date)
